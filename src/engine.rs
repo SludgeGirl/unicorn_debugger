@@ -1,6 +1,29 @@
 use crate::program::Program;
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, fmt::Display, rc::Rc};
 use unicorn_engine::{Arch, Mode, Prot, RegisterX86, Unicorn};
+
+struct FarPointer {
+    cs: u64,
+    ip: u64,
+}
+
+impl FarPointer {
+    fn read_engine(engine: &Unicorn<EngineData>) -> Self {
+        let cs = engine.reg_read(RegisterX86::CS).unwrap();
+        let ip = engine.reg_read(RegisterX86::IP).unwrap();
+        Self { cs, ip }
+    }
+
+    fn address(&self) -> u64 {
+        self.cs * 16 + self.ip
+    }
+}
+
+impl Display for FarPointer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:04x}:{:04x}", self.cs, self.ip)
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 struct EngineBreak {
@@ -31,10 +54,6 @@ impl EngineData {
         }
     }
 
-    fn start(&self) -> u64 {
-        self.program.start()
-    }
-
     fn add_break(&mut self, ebreak: EngineBreak) {
         self.breaks.insert(ebreak.addr, ebreak);
     }
@@ -60,15 +79,9 @@ impl<'a> Engine<'a> {
         self.engine.ctl_remove_cache(0, 8 * 1024 * 1024).unwrap();
     }
 
-    fn far_ip(&self) -> u64 {
-        let ip = self.engine.reg_read(RegisterX86::IP).unwrap();
-        let cs = self.engine.reg_read(RegisterX86::CS).unwrap();
-        cs * 16 + ip
-    }
-
     pub fn new(program: Program) -> Self {
         let data = EngineData::new(program);
-        let mut engine = Unicorn::new_with_data(Arch::X86, Mode::MODE_64, data).unwrap();
+        let mut engine = Unicorn::new_with_data(Arch::X86, Mode::MODE_16, data).unwrap();
         engine.mem_map(0, 8 * 1024 * 1024, Prot::ALL).unwrap();
         let program = engine.get_data().program.clone();
 
@@ -102,7 +115,8 @@ impl<'a> Engine<'a> {
                 let inst = decoder
                     .decode_slice(&emu.mem_read_as_vec(addr, len as usize).unwrap())
                     .unwrap();
-                println!("code exec: ({addr:x}): {}", inst.to_string());
+                let fp = FarPointer::read_engine(&emu);
+                println!("code exec: [{fp}]: {}", inst.to_string());
                 // NOTE: remove this to keep running the VM, it might crash though!
                 emu.emu_stop().unwrap();
                 let has_break = emu.get_data().get_break(addr).is_some();
@@ -129,7 +143,8 @@ impl<'a> Engine<'a> {
     }
 
     pub fn start(&mut self) {
-        self.engine.emu_start(self.far_ip(), 8192, 0, 0).unwrap()
+        let ip = FarPointer::read_engine(&self.engine);
+        self.engine.emu_start(ip.address(), 8192, 0, 0).unwrap()
     }
 
     // TODO: proper function for getting CPU info
