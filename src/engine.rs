@@ -66,11 +66,11 @@ impl<'a> Engine<'a> {
         engine.mem_map(0, 8 * 1024 * 1024, Prot::ALL).unwrap();
         let program = engine.get_data().program.clone();
 
-        for section in program.sections() {
-            if let Some(data) = program.section_data(section) {
-                engine.mem_write(section.sh_addr, data).unwrap();
-            }
-        }
+        // for section in program.sections() {
+        //     if let Some(data) = program.section_data(section) {
+        //         engine.mem_write(section.sh_addr, data).unwrap();
+        //     }
+        // }
 
         engine
             .add_insn_sys_hook(
