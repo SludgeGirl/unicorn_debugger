@@ -41,7 +41,7 @@ impl<'a> Debugger<'a> {
         if cmd == "q" || cmd == "quit" || cmd == "exit" {
             exit(0);
         } else if cmd == "p" || cmd == "print" {
-            println!("{:x}", self.engine.get_rsi());
+            println!("{}", self.engine.read_cpu());
         } else if cmd == "r" || cmd == "run" {
             self.run();
         } else if cmd == "c" || cmd == "continue" {

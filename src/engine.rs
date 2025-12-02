@@ -2,6 +2,87 @@ use crate::program::Program;
 use std::{collections::HashMap, fmt::Display, rc::Rc};
 use unicorn_engine::{Arch, Mode, Prot, RegisterX86, Unicorn};
 
+/// Addresses are 16 bit, but u64 makes it easier to work with unicorn
+pub struct Cpu {
+    ax: u64,
+    bx: u64,
+    cx: u64,
+    dx: u64,
+    si: u64,
+    di: u64,
+    sp: u64,
+    bp: u64,
+    ip: u64,
+    cs: u64,
+    ds: u64,
+    es: u64,
+    ss: u64,
+    fs: u64,
+    gs: u64,
+}
+
+impl Cpu {
+    fn read_engine(engine: &Unicorn<EngineData>) -> Self {
+        let ax = engine.reg_read(RegisterX86::AX).unwrap();
+        let bx = engine.reg_read(RegisterX86::BX).unwrap();
+        let cx = engine.reg_read(RegisterX86::CX).unwrap();
+        let dx = engine.reg_read(RegisterX86::DX).unwrap();
+        let si = engine.reg_read(RegisterX86::SI).unwrap();
+        let di = engine.reg_read(RegisterX86::DI).unwrap();
+        let sp = engine.reg_read(RegisterX86::SP).unwrap();
+        let bp = engine.reg_read(RegisterX86::BP).unwrap();
+        let ip = engine.reg_read(RegisterX86::IP).unwrap();
+        let cs = engine.reg_read(RegisterX86::CS).unwrap();
+        let ds = engine.reg_read(RegisterX86::DS).unwrap();
+        let es = engine.reg_read(RegisterX86::ES).unwrap();
+        let ss = engine.reg_read(RegisterX86::SS).unwrap();
+        let fs = engine.reg_read(RegisterX86::FS).unwrap();
+        let gs = engine.reg_read(RegisterX86::GS).unwrap();
+
+        Self {
+            ax,
+            bx,
+            cx,
+            dx,
+            si,
+            di,
+            sp,
+            bp,
+            ip,
+            cs,
+            ds,
+            es,
+            ss,
+            fs,
+            gs,
+        }
+    }
+}
+
+impl Display for Cpu {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Cpu {{")?;
+        writeln!(f, "    ax: {:04x},", self.ax)?;
+        writeln!(f, "    bx: {:04x},", self.bx)?;
+        writeln!(f, "    cx: {:04x},", self.cx)?;
+        writeln!(f, "    dx: {:04x},", self.dx)?;
+        writeln!(f, "    si: {:04x},", self.si)?;
+        writeln!(f, "    di: {:04x},", self.di)?;
+        writeln!(f, "    sp: {:04x},", self.sp)?;
+        writeln!(f, "    bp: {:04x},", self.bp)?;
+        writeln!(f, "    ip: {:04x},", self.ip)?;
+        writeln!(f, "    cs: {:04x},", self.cs)?;
+        writeln!(f, "    ds: {:04x},", self.ds)?;
+        writeln!(f, "    es: {:04x},", self.es)?;
+        writeln!(f, "    ss: {:04x},", self.ss)?;
+        writeln!(f, "    fs: {:04x},", self.fs)?;
+        writeln!(f, "    gs: {:04x},", self.gs)?;
+        write!(f, "}}")?;
+
+        Ok(())
+    }
+}
+
 struct FarPointer {
     cs: u64,
     ip: u64,
@@ -147,9 +228,8 @@ impl<'a> Engine<'a> {
         self.engine.emu_start(ip.address(), 8192, 0, 0).unwrap()
     }
 
-    // TODO: proper function for getting CPU info
-    pub fn get_rsi(&mut self) -> u64 {
-        self.engine.reg_read(RegisterX86::RSI).unwrap()
+    pub fn read_cpu(&self) -> Cpu {
+        Cpu::read_engine(&self.engine)
     }
 
     /// Continue run where enigne was stopped
