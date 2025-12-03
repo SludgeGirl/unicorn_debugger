@@ -167,9 +167,14 @@ impl<'a> Engine<'a> {
         let program = engine.get_data().program.clone();
 
         // the start is a far pointer segment thingy so we need to multiply it with 16
+        let start_segment = program.start() * 16;
+        let psp_segment = start_segment - 256;
         engine
-            .mem_write(program.start() * 16, program.data())
+            .mem_write(start_segment, program.data())
             .unwrap();
+        // TODO: create actual PSP
+        let psp_data: [u8; 256] = ['A' as u8; 256];
+        engine.mem_write(psp_segment, &psp_data).unwrap();
 
         engine
             .reg_write(RegisterX86::IP, program.header().initial_ip as u64)
@@ -188,6 +193,13 @@ impl<'a> Engine<'a> {
                 RegisterX86::SS,
                 program.header().initial_ss as u64 + program.start(),
             )
+            .unwrap();
+
+        engine
+            .reg_write(RegisterX86::DS, program.start() - 256)
+            .unwrap();
+        engine
+            .reg_write(RegisterX86::ES, program.start() - 256)
             .unwrap();
 
         engine
