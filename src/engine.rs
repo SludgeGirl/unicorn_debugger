@@ -237,4 +237,9 @@ impl<'a> Engine<'a> {
     pub fn cont(&mut self) {
         self.start();
     }
+
+    pub fn step(&mut self) {
+        let ip = FarPointer::read_engine(&self.engine);
+        self.engine.emu_start(ip.address(), 8192, 0, 1).unwrap()
+    }
 }

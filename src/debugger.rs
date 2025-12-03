@@ -30,6 +30,14 @@ impl<'a> Debugger<'a> {
         self.engine.cont();
     }
 
+    fn next(&mut self) {
+        if self.engine.exited() {
+            exit(0);
+        }
+
+        self.engine.step();
+    }
+
     fn add_break(&mut self, cmd: &str) {
         let addr = cmd.split_whitespace().nth(1).unwrap();
         let addr = if let Some(addrs) = addr.split_once(':') {
@@ -50,6 +58,8 @@ impl<'a> Debugger<'a> {
             println!("{}", self.engine.read_cpu());
         } else if cmd == "r" || cmd == "run" {
             self.run();
+        } else if cmd == "n" || cmd == "next" {
+            self.next();
         } else if cmd == "c" || cmd == "continue" {
             self.cont();
         } else if cmd.starts_with("b ") || cmd.starts_with("break ") {
