@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 byteorder = "1.5.0"
+clap = { version = "4.5.53", features = ["derive"] }
 elf = "0.8.0"
 unicorn-engine = "2.1.5"
 yaxpeax-x86 = "2.0.0"
