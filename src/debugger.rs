@@ -199,7 +199,7 @@ impl<'a> Debugger<'a> {
     fn print(&self, cmd: &str) {
         let parts: Vec<&str> = cmd.split_whitespace().collect();
         let cpu = self.engine.read_cpu();
-        if parts.len() == 1 {
+        if parts.len() <= 1 {
             println!("{cpu}");
             return;
         }
