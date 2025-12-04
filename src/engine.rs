@@ -57,6 +57,27 @@ impl Cpu {
             gs,
         }
     }
+
+    pub fn register(&self, register: &str) -> u64 {
+        match register {
+            "ax" => self.ax,
+            "bx" => self.bx,
+            "cx" => self.cx,
+            "dx" => self.dx,
+            "si" => self.si,
+            "di" => self.di,
+            "sp" => self.sp,
+            "bp" => self.bp,
+            "ip" => self.ip,
+            "cs" => self.cs,
+            "ds" => self.ds,
+            "es" => self.es,
+            "ss" => self.ss,
+            "fs" => self.fs,
+            "gs" => self.gs,
+            _ => panic!("Unknown cpu register {register}"),
+        }
+    }
 }
 
 impl Display for Cpu {
@@ -93,6 +114,13 @@ impl FarPointer {
         let cs = engine.reg_read(RegisterX86::CS).unwrap();
         let ip = engine.reg_read(RegisterX86::IP).unwrap();
         Self { cs, ip }
+    }
+
+    pub fn from_segment_offset(segment: u64, offset: u64) -> Self {
+        Self {
+            cs: segment,
+            ip: offset,
+        }
     }
 
     pub fn address(&self) -> u64 {
@@ -301,6 +329,13 @@ impl<'a> Engine<'a> {
 
     pub fn read_cpu(&self) -> Cpu {
         Cpu::read_engine(&self.engine)
+    }
+
+    /// Read two bytes from memory
+    pub fn read_mem(&self, addr: u64) -> u16 {
+        let mut buf: [u8; 2] = [0; 2];
+        self.engine.mem_read(addr, &mut buf).unwrap();
+        u16::from_le_bytes(buf)
     }
 
     /// Continue run where enigne was stopped
