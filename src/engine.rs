@@ -83,19 +83,19 @@ impl Display for Cpu {
     }
 }
 
-struct FarPointer {
+pub struct FarPointer {
     cs: u64,
     ip: u64,
 }
 
 impl FarPointer {
-    fn read_engine(engine: &Unicorn<EngineData>) -> Self {
+    pub fn read_engine(engine: &Unicorn<EngineData>) -> Self {
         let cs = engine.reg_read(RegisterX86::CS).unwrap();
         let ip = engine.reg_read(RegisterX86::IP).unwrap();
         Self { cs, ip }
     }
 
-    fn address(&self) -> u64 {
+    pub fn address(&self) -> u64 {
         self.cs * 16 + self.ip
     }
 }
@@ -119,7 +119,7 @@ impl EngineBreak {
     }
 }
 
-struct EngineData {
+pub struct EngineData {
     program: Rc<Program>,
     /// address -> break data
     breaks: HashMap<u64, EngineBreak>,
@@ -160,6 +160,10 @@ impl<'a> Engine<'a> {
         // we need to invalidate the cache to make sure the code changes are applied
         // https://github.com/unicorn-engine/unicorn/wiki/FAQ#editing-an-instruction-doesnt-take-effecthooks-added-during-emulation-are-not-called
         self.engine.ctl_remove_cache(0, 8 * 1024 * 1024).unwrap();
+    }
+
+    pub fn engine(&self) -> &Unicorn<'a, EngineData> {
+        &self.engine
     }
 
     pub fn new(program: Program) -> Self {
