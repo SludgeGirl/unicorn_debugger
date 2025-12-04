@@ -94,6 +94,7 @@ impl Ast {
     }
 
     fn parse_while(idx: usize, lines: &[&str]) -> (Command, usize) {
+        let start = idx;
         let mut idx = idx;
         let line_num = idx + 1;
 
@@ -140,7 +141,7 @@ impl Ast {
             panic!("expected closing '}}' after a while command ")
         }
 
-        (Command::WhileBreak { addr, commands }, idx)
+        (Command::WhileBreak { addr, commands }, idx - start)
     }
 
     fn parse_addr(addr: &str) -> Result<u64, ParseIntError> {
