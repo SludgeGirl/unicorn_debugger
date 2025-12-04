@@ -6,6 +6,56 @@ use std::{
 
 use crate::engine::Engine;
 
+enum Command {
+    Quit,
+    Print,
+    Run,
+    Next,
+    Continue,
+    Logon,
+    Logoff,
+    Break(String),
+}
+
+struct Ast {
+    commands: Vec<Command>,
+}
+
+impl Ast {
+    fn new(file: &str) -> Self {
+        let mut commands = Vec::new();
+
+        for (idx, line) in file.lines().enumerate() {
+            let line = line.trim();
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+
+            if line == "q" || line == "quit" || line == "exit" {
+                commands.push(Command::Quit);
+            } else if line == "p" || line == "print" {
+                commands.push(Command::Print);
+            } else if line == "r" || line == "run" {
+                commands.push(Command::Run);
+            } else if line == "n" || line == "next" {
+                commands.push(Command::Next);
+            } else if line == "c" || line == "continue" {
+                commands.push(Command::Continue);
+            } else if line == "logon" {
+                commands.push(Command::Logon);
+            } else if line == "logoff" {
+                commands.push(Command::Logoff);
+            } else if line.starts_with("b ") || line.starts_with("break ") {
+                commands.push(Command::Break(line.into()));
+            } else {
+                panic!("Unknown command {line} on line {}", idx + 1);
+            }
+        }
+
+        Self { commands }
+    }
+}
+
 pub struct Debugger<'a> {
     pub engine: Engine<'a>,
 }
@@ -51,42 +101,25 @@ impl<'a> Debugger<'a> {
         self.engine.add_break(addr);
     }
 
-    fn run_command(&mut self, cmd: &str) {
-        if cmd == "q" || cmd == "quit" || cmd == "exit" {
-            exit(0);
-        } else if cmd == "p" || cmd == "print" {
-            println!("{}", self.engine.read_cpu());
-        } else if cmd == "r" || cmd == "run" {
-            self.run();
-        } else if cmd == "n" || cmd == "next" {
-            self.next();
-        } else if cmd == "c" || cmd == "continue" {
-            self.cont();
-        } else if cmd == "logon" {
-            self.engine.set_verbose(true);
-        } else if cmd == "logoff" {
-            self.engine.set_verbose(false);
-        } else if cmd.starts_with("b ") || cmd.starts_with("break ") {
-            self.add_break(cmd);
-        } else {
-            println!("Unknown command {cmd}");
+    fn run_ast(&mut self, ast: &Ast) {
+        for command in &ast.commands {
+            match command {
+                Command::Quit => exit(0),
+                Command::Print => println!("{}", self.engine.read_cpu()),
+                Command::Run => self.run(),
+                Command::Next => self.next(),
+                Command::Continue => self.cont(),
+                Command::Logon => self.engine.set_verbose(true),
+                Command::Logoff => self.engine.set_verbose(false),
+                Command::Break(cmd) => self.add_break(cmd),
+            }
         }
     }
 
     pub fn run_file(&mut self, path: &str) {
         let file_data = fs::read_to_string(path).unwrap();
-        for line in file_data.lines() {
-            let line = line.trim();
-            if line.is_empty() {
-                continue;
-            }
-
-            if line.starts_with('#') {
-                continue;
-            }
-
-            self.run_command(line);
-        }
+        let ast = Ast::new(&file_data);
+        self.run_ast(&ast);
     }
 
     pub fn repl(&mut self) {
@@ -95,7 +128,8 @@ impl<'a> Debugger<'a> {
             io::stdout().flush().unwrap();
             let mut cmd = String::new();
             let _ = io::stdin().lock().read_line(&mut cmd).unwrap();
-            self.run_command(cmd.trim());
+            let ast = Ast::new(&cmd);
+            self.run_ast(&ast);
         }
     }
 }
