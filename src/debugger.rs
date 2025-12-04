@@ -12,7 +12,7 @@ enum Command {
     Quit,
     Print(String),
     Run,
-    Next,
+    Next(Option<usize>),
     Continue,
     Logon,
     Logoff,
@@ -72,7 +72,10 @@ impl Ast {
         } else if line == "r" || line == "run" {
             (Command::Run, 1)
         } else if line == "n" || line == "next" {
-            (Command::Next, 1)
+            (Command::Next(None), 1)
+        } else if line.starts_with("n ") || line.starts_with("next ") {
+            let count = usize::from_str_radix(line.split_whitespace().nth(1).unwrap(), 10).unwrap();
+            (Command::Next(Some(count)), 1)
         } else if line == "c" || line == "continue" {
             (Command::Continue, 1)
         } else if line == "logon" {
@@ -224,7 +227,12 @@ impl<'a> Debugger<'a> {
                 Command::Quit => exit(0),
                 Command::Print(cmd) => self.print(cmd),
                 Command::Run => self.run(),
-                Command::Next => self.next(),
+                Command::Next(None) => self.next(),
+                Command::Next(Some(count)) => {
+                    for _ in 0..*count {
+                        self.next();
+                    }
+                }
                 Command::Continue => self.cont(),
                 Command::Logon => self.engine.set_verbose(true),
                 Command::Logoff => self.engine.set_verbose(false),
