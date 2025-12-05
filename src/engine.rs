@@ -274,7 +274,10 @@ impl<'a> Engine<'a> {
                 let cpu = Cpu::read_engine(&emu);
                 if num == 0x21 {
                     let ah = cpu.ax >> 8;
-                    if ah == 0x40 {
+                    if ah == 0x30 {
+                        // TXLIST.EXE is checking for DOS version 2 so lets set the dos version to that for now
+                        emu.reg_write(RegisterX86::AL, 2).unwrap();
+                    } else if ah == 0x40 {
                         let ds = cpu.ds;
                         let dx = cpu.dx;
                         let addr = ds * 16 + dx;
@@ -284,6 +287,15 @@ impl<'a> Engine<'a> {
                             cpu.bx,
                             String::from_utf8_lossy(&data)
                         );
+                    } else if ah == 0x4a {
+                        // Dosbox is doing this so lets do it too for now?
+                        if cpu.ax == 0x4a01 || cpu.ax == 0x4a02 {
+                            emu.reg_write(RegisterX86::BX, 0).unwrap();
+                            emu.reg_write(RegisterX86::ES, 0xffff).unwrap();
+                            emu.reg_write(RegisterX86::DI, 0xffff).unwrap();
+                        } else {
+                            panic!("Only ax 0x4a01 and 0x4a02 are implemented for INT 21,4a");
+                        }
                     } else if ah == 0x4c {
                         let al = cpu.ax & 0xff;
                         println!("Program terminating with code '0x{al:x}', exiting...");
