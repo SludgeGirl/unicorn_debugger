@@ -274,9 +274,17 @@ impl<'a> Engine<'a> {
                 let cpu = Cpu::read_engine(&emu);
                 if num == 0x21 {
                     let ah = cpu.ax >> 8;
-                    if ah == 0x30 {
+                    if ah == 0x25 {
+                        let al = cpu.ax & 0xff;
+                        let handler_ptr = (cpu.ds * 16 + cpu.dx) as u32;
+                        emu.mem_write(al * 4, &handler_ptr.to_le_bytes()).unwrap();
+                    } else if ah == 0x30 {
                         // TXLIST.EXE is checking for DOS version 2 so lets set the dos version to that for now
                         emu.reg_write(RegisterX86::AL, 2).unwrap();
+                    } else if ah == 0x35 {
+                        let al = cpu.ax & 0xff;
+                        emu.reg_write(RegisterX86::BX, al * 4).unwrap();
+                        emu.reg_write(RegisterX86::ES, al * 4 + 2).unwrap();
                     } else if ah == 0x40 {
                         let ds = cpu.ds;
                         let dx = cpu.dx;
