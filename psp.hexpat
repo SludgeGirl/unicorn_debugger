@@ -1,0 +1,31 @@
+struct PSP {
+    u8 exit[2];
+    u16 neg_seg;
+    u8 fill_1;
+    u8 far_call;
+    u32 cpm_entry;
+    u32 int_22;
+    u32 int_23;
+    u32 int_24;
+    u16 psp_parent;
+    u8 files[20];
+    u16 environment;
+    u32 stack;
+    u16 max_files;
+    u32 file_table;
+    u32 prev_psp;
+    u8 interim_flag;
+    u8 truename_flag;
+    u16 nn_flags;
+    u16 dos_version;
+    u8 fill_2[14];
+    u8 service[3];
+    u8 fill_3[9];
+    u8 fcb1[16];
+    u8 fcb2[16];
+    u8 fill_4[4];
+    u8 cmd_count;
+    u8 cmd_trail[127];
+};
+
+PSP psp_at_0x00 @ 0x00;
