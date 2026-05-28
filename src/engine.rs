@@ -239,10 +239,13 @@ impl<'a> Engine<'a> {
                 let fp = FarPointer::read_engine(emu);
                 if emu.get_data().verbose {
                     let decoder = yaxpeax_x86::real_mode::InstDecoder::default();
-                    let inst = decoder
-                        .decode_slice(&emu.mem_read_as_vec(addr, len as usize).unwrap())
-                        .unwrap();
-                    println!("code exec: [{fp}]: {}", inst);
+                    if let Ok(inst) = decoder
+                        .decode_slice(&emu.mem_read_as_vec(addr, len as usize).unwrap()) {
+
+                        println!("code exec: [{fp}]: {}", inst);
+                    } else {
+                        println!("failed to parse instruction at {addr}");
+                    }
                 }
 
                 let has_break = emu.get_data().get_break(addr).is_some();
