@@ -322,6 +322,14 @@ impl<'a> Engine<'a> {
                             emu.get_data_mut().exited = true;
                             emu.emu_stop().unwrap();
                         }
+                    } else if ah == 0x47 { // Get current directory
+                        let ds = cpu.ds;
+                        let si = cpu.si;
+                        let addr = ds * 16 + si;
+                        let mut padded_write: [u8; 64] = [0; 64];
+                        let folder = String::from("project");
+                        padded_write[..folder.len()].copy_from_slice(folder.as_bytes());
+                        emu.mem_write(addr, &padded_write).unwrap();
                     } else if ah == 0x4a { // Modify allocated memory blocks
                         // Dosbox is doing this so lets do it too for now?
                         if cpu.ax == 0x4a01 || cpu.ax == 0x4a02 {
