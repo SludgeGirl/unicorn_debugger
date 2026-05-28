@@ -274,6 +274,9 @@ impl<'a> Engine<'a> {
                         let al = cpu.ax & 0xff;
                         let handler_ptr = (cpu.ds * 16 + cpu.dx) as u32;
                         emu.mem_write(al * 4, &handler_ptr.to_le_bytes()).unwrap();
+                    } else if ah == 0x19 { // Get current default drive
+                        // Lets just set it to drive A (0)
+                        emu.reg_write(RegisterX86::AL, 0).unwrap();
                     } else if ah == 0x30 { // Get DOS version number
                         // TXLIST.EXE is checking for DOS version 2 so lets set the dos version to that for now
                         emu.reg_write(RegisterX86::AL, 2).unwrap();
