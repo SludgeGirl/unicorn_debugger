@@ -311,6 +311,17 @@ impl<'a> Engine<'a> {
                             emu.get_data_mut().exited = true;
                             emu.emu_stop().unwrap();
                         }
+                    } else if ah == 0x43 { // Get/Set File attributes
+                        let al = emu.reg_read(RegisterX86::AL).unwrap();
+                        let cx = emu.reg_read(RegisterX86::CX).unwrap();
+                        if al == 0 && cx == 0 {
+                            emu.reg_write(RegisterX86::CX, 1).unwrap();
+                        } else {
+                            println!("Get/Set file attributes call not supported, exiting...");
+                            println!("Call was AL: {al} CX: {cx}");
+                            emu.get_data_mut().exited = true;
+                            emu.emu_stop().unwrap();
+                        }
                     } else if ah == 0x4a { // Modify allocated memory blocks
                         // Dosbox is doing this so lets do it too for now?
                         if cpu.ax == 0x4a01 || cpu.ax == 0x4a02 {
