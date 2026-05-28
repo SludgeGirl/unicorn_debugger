@@ -10,7 +10,7 @@ mod program;
 fn main() {
     let args = cli::CliArgs::parse();
     let program = Program::new(&args.program_path, 0x1000);
-    let mut engine = Engine::new(program);
+    let mut engine = Engine::new(program, args.args.join(" ").as_bytes());
     engine.set_verbose(args.verbose);
 
     if args.debug_mode() {

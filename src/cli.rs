@@ -17,6 +17,8 @@ pub struct CliArgs {
 
     /// Path to executable MsDos EXE
     pub program_path: String,
+
+    pub args: Vec<String>,
 }
 
 impl CliArgs {

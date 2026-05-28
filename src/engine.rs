@@ -197,7 +197,7 @@ impl<'a> Engine<'a> {
         &self.engine
     }
 
-    pub fn new(program: Program) -> Self {
+    pub fn new(program: Program, args: &[u8]) -> Self {
         let data = EngineData::new(program);
         let mut engine = Unicorn::new_with_data(Arch::X86, Mode::MODE_16, data).unwrap();
         engine.mem_map(0, 8 * 1024 * 1024, Prot::ALL).unwrap();
@@ -208,7 +208,7 @@ impl<'a> Engine<'a> {
         let psp_segment = start_segment - 256;
         engine.mem_write(start_segment, program.data()).unwrap();
 
-        let psp = &PSP::new(0x0, 0x0);
+        let psp = &PSP::new(0x0, 0x0, args);
         let psp_data: &[u8] = psp.into();
         engine.mem_write(psp_segment, psp_data).unwrap();
 

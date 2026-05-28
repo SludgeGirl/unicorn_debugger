@@ -205,16 +205,12 @@ pub struct PSP {
 }
 
 impl PSP {
-    pub fn new(alloc_end: u16, call_disp: u8) -> Self {
+    pub fn new(alloc_end: u16, call_disp: u8, cmd: &[u8]) -> Self {
         let mut cmd_trail: [u8; 127] = [0x0; 127];
-        let cmd = String::from(" list");
+        let args_length = String::from_utf8_lossy(cmd).chars().count();
 
-        let mut count = 0;
-        for i in cmd.as_bytes() {
-            cmd_trail[count] = *i;
-            count += 1;
-        }
-        cmd_trail[count] = 0x0D;
+        cmd_trail[..cmd.len()].copy_from_slice(cmd);
+        cmd_trail[cmd.len() + 2] = 0x0D;
 
         Self {
             exit_interrupt: 0x20CD,
@@ -236,7 +232,7 @@ impl PSP {
             spacer_2: [0x0; 9],
             unopened_fcb_1: [0x0; 16],
             unopened_fcb_2: [0x0; 16],
-            cmd_trail_chars: cmd.chars().count() as u8,
+            cmd_trail_chars: args_length as u8,
             cmd_trail,
             stack_save: 0x0,
             interim_flag: 0x0,
