@@ -270,18 +270,18 @@ impl<'a> Engine<'a> {
                 let cpu = Cpu::read_engine(emu);
                 if num == 0x21 {
                     let ah = cpu.ax >> 8;
-                    if ah == 0x25 {
+                    if ah == 0x25 { // Set interrupt vector
                         let al = cpu.ax & 0xff;
                         let handler_ptr = (cpu.ds * 16 + cpu.dx) as u32;
                         emu.mem_write(al * 4, &handler_ptr.to_le_bytes()).unwrap();
-                    } else if ah == 0x30 {
+                    } else if ah == 0x30 { // Get DOS version number
                         // TXLIST.EXE is checking for DOS version 2 so lets set the dos version to that for now
                         emu.reg_write(RegisterX86::AL, 2).unwrap();
-                    } else if ah == 0x35 {
+                    } else if ah == 0x35 { // Get vector
                         let al = cpu.ax & 0xff;
                         emu.reg_write(RegisterX86::BX, al * 4).unwrap();
                         emu.reg_write(RegisterX86::ES, al * 4 + 2).unwrap();
-                    } else if ah == 0x40 {
+                    } else if ah == 0x40 { // Write file or device using handle
                         let ds = cpu.ds;
                         let dx = cpu.dx;
                         let addr = ds * 16 + dx;
@@ -291,7 +291,7 @@ impl<'a> Engine<'a> {
                             cpu.bx,
                             String::from_utf8_lossy(&data)
                         );
-                    } else if ah == 0x44 {
+                    } else if ah == 0x44 { // I/O control for devices
                         let al = cpu.ax & 0xff;
                         if cpu.bx > 4 {
                             println!("IOCTL functions are only implemented for default file handles. Exiting..");
@@ -308,7 +308,7 @@ impl<'a> Engine<'a> {
                             emu.get_data_mut().exited = true;
                             emu.emu_stop().unwrap();
                         }
-                    } else if ah == 0x4a {
+                    } else if ah == 0x4a { // Modify allocated memory blocks
                         // Dosbox is doing this so lets do it too for now?
                         if cpu.ax == 0x4a01 || cpu.ax == 0x4a02 {
                             emu.reg_write(RegisterX86::BX, 0).unwrap();
@@ -317,7 +317,7 @@ impl<'a> Engine<'a> {
                         } else {
                             panic!("Only ax 0x4a01 and 0x4a02 are implemented for INT 21,4a");
                         }
-                    } else if ah == 0x4c {
+                    } else if ah == 0x4c { // Terminate process with return code
                         let al = cpu.ax & 0xff;
                         println!("Program terminating with code '0x{al:x}', exiting...");
                         emu.get_data_mut().exited = true;
