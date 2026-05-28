@@ -108,7 +108,7 @@ impl Ast {
             panic!("line {line_num}: only 'break' is supported after while command");
         }
 
-        let addr = if let Ok(addr) = Self::parse_addr(&parts[2]) {
+        let addr = if let Ok(addr) = Self::parse_addr(parts[2]) {
             addr
         } else {
             panic!(
@@ -125,7 +125,7 @@ impl Ast {
         idx += 1;
         let mut end_found = false;
         let mut commands = Vec::new();
-        while let Some((value, next_idx)) = Self::parse_command(idx, &lines, true) {
+        while let Some((value, next_idx)) = Self::parse_command(idx, lines, true) {
             idx = next_idx;
             match value {
                 ParseVal::BlockEnd => {
@@ -208,7 +208,7 @@ impl<'a> Debugger<'a> {
             return;
         }
 
-        let (at, addr) = if let Ok(addr) = Ast::parse_addr(&parts[1]) {
+        let (at, addr) = if let Ok(addr) = Ast::parse_addr(parts[1]) {
             (parts[1].into(), addr)
         } else if let Some((reg1, reg2)) = parts[1].split_once(':') {
             let segment = cpu.register(reg1);

@@ -237,7 +237,7 @@ impl PSP {
             unopened_fcb_1: [0x0; 16],
             unopened_fcb_2: [0x0; 16],
             cmd_trail_chars: cmd.chars().count() as u8,
-            cmd_trail:  cmd_trail,
+            cmd_trail,
             stack_save: 0x0,
             interim_flag: 0x0,
             truename_flag: 0x0,

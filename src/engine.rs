@@ -231,22 +231,18 @@ impl<'a> Engine<'a> {
             )
             .unwrap();
 
-        engine
-            .reg_write(RegisterX86::DS, psp_segment >> 4)
-            .unwrap();
-        engine
-            .reg_write(RegisterX86::ES, psp_segment >> 4)
-            .unwrap();
+        engine.reg_write(RegisterX86::DS, psp_segment >> 4).unwrap();
+        engine.reg_write(RegisterX86::ES, psp_segment >> 4).unwrap();
 
         engine
             .add_code_hook(program.start(), 0, |emu, addr, len| {
-                let fp = FarPointer::read_engine(&emu);
+                let fp = FarPointer::read_engine(emu);
                 if emu.get_data().verbose {
                     let decoder = yaxpeax_x86::real_mode::InstDecoder::default();
                     let inst = decoder
                         .decode_slice(&emu.mem_read_as_vec(addr, len as usize).unwrap())
                         .unwrap();
-                    println!("code exec: [{fp}]: {}", inst.to_string());
+                    println!("code exec: [{fp}]: {}", inst);
                 }
 
                 let has_break = emu.get_data().get_break(addr).is_some();
@@ -271,7 +267,7 @@ impl<'a> Engine<'a> {
 
         engine
             .add_intr_hook(|emu, num| {
-                let cpu = Cpu::read_engine(&emu);
+                let cpu = Cpu::read_engine(emu);
                 if num == 0x21 {
                     let ah = cpu.ax >> 8;
                     if ah == 0x25 {
@@ -330,7 +326,6 @@ impl<'a> Engine<'a> {
                         println!("Unimplemented ah for 0x21: 0x{ah:x}, exiting...");
                         emu.get_data_mut().exited = true;
                         emu.emu_stop().unwrap();
-                        return;
                     }
                 } else {
                     println!("Unimplemented interrupt 0x{num:x}, exiting...");
